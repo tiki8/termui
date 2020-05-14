@@ -12,6 +12,8 @@ const (
 	BOTTOM_LEFT  = '└'
 	BOTTOM_RIGHT = '┘'
 
+	BLANK_LINE   = ' '
+
 	VERTICAL_LINE   = '│'
 	HORIZONTAL_LINE = '─'
 

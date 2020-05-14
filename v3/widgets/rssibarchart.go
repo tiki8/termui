@@ -13,7 +13,7 @@ import (
 	. "github.com/tiki8/termui/v3"
 )
 
-type BarChart struct {
+type RSSIBarChart struct {
 	Block
 	BarColors    []Color
 	LabelStyles  []Style
@@ -26,8 +26,8 @@ type BarChart struct {
 	MaxVal       float64
 }
 
-func NewBarChart() *BarChart {
-	return &BarChart{
+func RSSINewBarChart() *RSSIBarChart {
+	return &RSSIBarChart{
 		Block:        *NewBlock(),
 		BarColors:    Theme.BarChart.Bars,
 		NumStyles:    Theme.BarChart.Nums,
@@ -38,19 +38,35 @@ func NewBarChart() *BarChart {
 	}
 }
 
-func (self *BarChart) Draw(buf *Buffer) {
+const maxRSSI	= -40
+const minRSSI	= -140
+const maxRSSIAdjusted	= 100
+
+func rssiAdjust(d float64) float64 {
+	
+	if (d > maxRSSI) {
+		return 100
+	}
+	if (d < minRSSI) {
+		return 0
+	}
+	return d - minRSSI
+}
+
+func (self *RSSIBarChart) Draw(buf *Buffer) {
 	self.Block.Draw(buf)
 
-	maxVal := self.MaxVal
-	if maxVal == 0 {
-		maxVal, _ = GetMaxFloat64FromSlice(self.Data)
-	}
+	//maxVal := self.MaxVal
+	//maxVal := maxRSSI
+	//if maxVal == 0 {
+	//	maxVal, _ = GetMaxFloat64FromSlice(self.Data)
+	//}
 
 	barXCoordinate := self.Inner.Min.X
 
 	for i, data := range self.Data {
 		// draw bar
-		height := int((data / maxVal) * float64(self.Inner.Dy()-1))
+		height := int((rssiAdjust(data) / maxRSSIAdjusted) * float64(self.Inner.Dy()-1))
 		for x := barXCoordinate; x < MinInt(barXCoordinate+self.BarWidth, self.Inner.Max.X); x++ {
 			for y := self.Inner.Max.Y - 2; y > (self.Inner.Max.Y-2)-height; y-- {
 				c := NewCell(' ', NewStyle(ColorClear, SelectColor(self.BarColors, i)))
@@ -71,12 +87,17 @@ func (self *BarChart) Draw(buf *Buffer) {
 		}
 
 		// draw number
-		numberXCoordinate := barXCoordinate + int((float64(self.BarWidth) / 2))
+		numberXCoordinate := barXCoordinate -2 + int((float64(self.BarWidth) / 2))
 		if numberXCoordinate <= self.Inner.Max.X {
+			s := "----"
+			if data > minRSSI {
+				s = self.NumFormatter(data)
+			} 
 			buf.SetString(
-				self.NumFormatter(data),
+				s,
 				NewStyle(
-					SelectStyle(self.NumStyles, i+1).Fg,
+					//SelectStyle(self.NumStyles, i+1).Fg,
+					SelectStyle(self.NumStyles, 2).Fg,
 					SelectColor(self.BarColors, i),
 					SelectStyle(self.NumStyles, i+1).Modifier,
 				),

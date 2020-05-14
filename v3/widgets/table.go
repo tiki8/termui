@@ -7,7 +7,7 @@ package widgets
 import (
 	"image"
 
-	. "github.com/gizak/termui/v3"
+	. "github.com/tiki8/termui/v3"
 )
 
 /*Table is like:
@@ -25,6 +25,7 @@ type Table struct {
 	ColumnWidths  []int
 	TextStyle     Style
 	RowSeparator  bool
+	ColSeparator  bool
 	TextAlignment Alignment
 	RowStyles     map[int]Style
 	FillRow       bool
@@ -38,6 +39,7 @@ func NewTable() *Table {
 		Block:         *NewBlock(),
 		TextStyle:     Theme.Table.Text,
 		RowSeparator:  true,
+		ColSeparator:  true,
 		RowStyles:     make(map[int]Style),
 		ColumnResizer: func() {},
 	}
@@ -112,6 +114,9 @@ func (self *Table) Draw(buf *Buffer) {
 
 		separatorXCoordinate := self.Inner.Min.X
 		verticalCell := NewCell(VERTICAL_LINE, separatorStyle)
+		if !self.ColSeparator {
+			verticalCell = NewCell(BLANK_LINE, separatorStyle)
+		}
 		for i, width := range columnWidths {
 			if self.FillRow && i < len(columnWidths)-1 {
 				verticalCell.Style.Bg = rowStyle.Bg
